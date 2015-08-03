@@ -97,6 +97,11 @@ logput ()
 	fi
 }
 
+alias error='logput e'
+alias warn='logput w'
+alias debug='logput d'
+alias verbose='logput v'
+
 ##
 # # DOC&HELP
 # ---------
