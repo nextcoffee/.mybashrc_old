@@ -77,3 +77,66 @@ mycd(){
 	cd $@
 }
 complete -o nospace -F _mycd mycd
+
+function _adbsh(){
+	local cur="${COMP_WORDS[COMP_CWORD]}"
+	[[ ${cur::1} = '/' ]] || cur="/$cur"
+	local dir="${cur%/*}/"
+	local obj="${cur##*/}"
+	local paths=$(adb shell ls $dir | tr -s '\r\n' ' ')
+	COMPREPLY=($(compgen -W '${paths[@]}' -- "$obj"))
+
+	verbose
+	verbose "-----------INFO{----------"
+	verbose "cur.........$cur"
+	verbose "dir.........$dir"
+	verbose "obj.........$obj"
+	verbose "COMPREPLY...${COMPREPLY[@]}"
+	verbose "-----------INFO}----------"
+
+	if [[ "${#COMPREPLY[@]}" = "0" ]]; then
+		debug "empty completion"
+		return 0
+	elif [[ "${#COMPREPLY[@]}" = "1" ]]; then
+		debug "single completion"
+		if [[ "$COMPREPLY" = "$obj" ]]; then
+			if [[ -n `adb shell '[[ -d "'"$cur"'" ]] && echo D'` ]]; then
+				COMPREPLY=$dir$COMPREPLY"/"
+			else
+				COMPREPLY=()
+			fi
+		else
+			COMPREPLY=$dir$COMPREPLY
+		fi
+	else
+		debug "multiple completion"
+
+		#COMPREPLY=' '$COMPREPLY
+		#Add blank space ' ' in front of COMPREPLY, let completion mismatch,
+		#so that, the command line long path ($dir$obj) will not be replaced by short one ($obj).
+		if [[ "$COMPREPLY" = "$obj" ]]; then
+			debug "sufficient completion 1"
+			#COMPREPLY='. '$COMPREPLY
+			COMPREPLY=(. ${COMPREPLY[@]})
+		else
+			local newobj=${COMPREPLY:0:((${#obj}+1))}
+			local newrly=($(compgen -W '${paths[@]}' -- "$newobj"))
+			if [[ "${#newrly[@]}" = "${#COMPREPLY[@]}" ]]; then
+				debug "unsufficient completion"
+				COMPREPLY=($(compgen -P $dir -W '${paths[@]}' -- "$obj"))
+			else
+				debug "sufficient completion 2"
+				#COMPREPLY='. '$COMPREPLY
+				COMPREPLY=(. ${COMPREPLY[@]})
+			fi
+		fi
+	fi
+
+    return 0
+}
+
+adbsh(){
+	#_self_source
+	adb shell $@
+}
+complete -o nospace -F _adbsh adbsh
