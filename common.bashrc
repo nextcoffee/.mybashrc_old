@@ -97,8 +97,8 @@ logput ()
 	fi
 }
 
-alias error='logput e'
-alias warn='logput w'
+alias error='logput e >&2'
+alias warn='logput w >&2'
 alias debug='logput d'
 alias verbose='logput v'
 
