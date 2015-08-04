@@ -21,10 +21,10 @@ alias klog='adb wait-for-device root; adb wait-for-device shell cat /proc/kmsg'
 # Use line buffering on output.  This can cause a performance penalty.
 alias lbgrep='grep --line-buffered'
 
-# 
+#
 _mycd(){
 	local old_ifs=$IFS
-	
+
 	IFS=$'\n'
 	local cur="${COMP_WORDS[COMP_CWORD]}"
 	local dir_lst=($(unset HISTTIMEFORMAT; history | awk '{$1="";print $0}' | sort -u | sed -n 's/^ *cd *\([^;]*\).*/\1/p'))
@@ -44,7 +44,7 @@ _mycd(){
 
 	COMPREPLY=($dir_lst[@])
 	[[ ${#key_lst[@]} = 0 ]] && return 0
-	
+
 	for key in ${key_lst[@]}
 	do
 		verbose
@@ -54,14 +54,14 @@ _mycd(){
 			verbose "dir_lst[$i]..${dir_lst[i]}"
 			[[ "${dir_lst[i]}" =~ "$key" ]] || dir_lst[i]=''
 		done
-		
+
 		#clear up empty elements
 		dir_lst=(${dir_lst[@]})
 		verbose
 	done
 
 	verbose "dir_lst.....[${#dir_lst[@]}]:${dir_lst[@]}"
-	
+
 	if [[ ${#dir_lst[@]} < 2 ]]; then
 		COMPREPLY=(${dir_lst[@]})
 	else
@@ -79,8 +79,13 @@ mycd(){
 complete -o nospace -F _mycd mycd
 
 function _adbsh(){
-	local cur="${COMP_WORDS[COMP_CWORD]}"
+	verbose
+	verbose "${COMP_WORDS[@]}"
+
+	#local cur="${COMP_WORDS[COMP_CWORD]}"
+	_get_comp_words_by_ref -n : cur
 	[[ ${cur::1} = '/' ]] || cur="/$cur"
+
 	local dir="${cur%/*}/"
 	local obj="${cur##*/}"
 	local paths=$(adb shell ls $dir | tr -s '\r\n' ' ')
@@ -131,6 +136,8 @@ function _adbsh(){
 			fi
 		fi
 	fi
+
+	__ltrim_colon_completions "$cur"
 
     return 0
 }
