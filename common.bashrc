@@ -91,7 +91,7 @@ logput ()
 	
 	shift
 	if [[ -n $@ ]]; then
-		echo -e "\e[${style}m<$lvl> $@\e[0m"
+		echo -e "\e[${style}m$@\e[0m"
 	else
 		echo -e "\r\n"
 	fi
