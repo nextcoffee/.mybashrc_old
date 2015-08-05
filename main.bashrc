@@ -27,7 +27,7 @@ _mycd(){
 
 	IFS=$'\n'
 	local cur="${COMP_WORDS[COMP_CWORD]}"
-	local dir_lst=($(unset HISTTIMEFORMAT; history | awk '{$1="";print $0}' | sort -u | sed -n 's/^ *cd *\([^;]*\).*/\1/p'))
+	local dir_lst=($(unset HISTTIMEFORMAT; history | awk '{$1="";print $0}' | sort -u | sed -n 's/^ *\(my\)\?cd *\([^;]*\).*/\2/p'))
 	local key_lst=($(echo $cur | tr '+' '\n'))
 	IFS=$old_ifs
 
@@ -47,12 +47,11 @@ _mycd(){
 
 	local key
 	local i
-	local cnt
-	for key in ${key_lst[@]}
+	local cnt=${#dir_lst[@]}
+	for key in "${key_lst[@]}"
 	do
 		verbose
 		verbose "key..$key"
-		cnt=${#dir_lst[@]}
 		for (( i=0; i<$cnt; i++ ))
 		do
 			verbose "dir_lst[$i]..${dir_lst[i]}"
@@ -67,10 +66,10 @@ _mycd(){
 	verbose "dir_lst.....[${#dir_lst[@]}]:${dir_lst[@]}"
 
 	if [[ ${#dir_lst[@]} < 2 ]]; then
-		COMPREPLY=(${dir_lst[@]})
+		COMPREPLY=("${dir_lst[@]}")
 	else
 		if [[ ${cur:((${#cur}-1))} = '+' ]]; then
-			COMPREPLY=(. ${dir_lst[@]})
+			COMPREPLY=(. "${dir_lst[@]}")
 		else
 			COMPREPLY=($cur'+')
 		fi
