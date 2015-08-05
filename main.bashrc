@@ -154,3 +154,134 @@ adbsh(){
 	adb shell $@
 }
 complete -o nospace -F _adbsh adbsh
+
+_genDefFileName ()
+{
+    case "$1" in
+        "splash" | "boot" | "cache" | "userdata" | "recovery" | "system" | "persist")
+            echo "$1.img"
+        ;;
+        "sbl1" | "tz" | "rpm")
+            echo "$1.mbn"
+        ;;
+        "modem")
+            echo "NON-HLOS.bin"
+        ;;
+        "dbi")
+            echo "sdi.mbn"
+        ;;
+        "aboot")
+            echo "emmc_appsboot.mbn"
+        ;;
+        *)
+            return 1
+        ;;
+    esac
+}
+
+_array_contain ()
+{
+    local array="$1[@]"
+    local seeking=$2
+	local element
+    for element in "${!array}"; do
+        [[ $element == $seeking ]] && return 0
+    done
+    return 1
+}
+
+myflash ()
+{
+    [[ -n "$1" ]] || [[ "$1" = "-h" ]] || [[ "$1" = "--help" ]] || {
+		_usage
+		return 0
+	}
+
+	local partition_tbl
+	local fastmode=$(fastboot devices 2>/dev/null)
+	if [[ $fastmode ]]; then
+		warn "already in fastboot mode, can't check battery capacity and partition table"
+	else
+		local force_flag=false
+		[[ "$@" =~ ' -f ' ]] && force_flag=true
+
+		[[ $(adb get-state | tr -d '\r\n') = "device" ]] || {
+			error "device not found"
+			return 1
+		}
+
+		if ! $force_flag; then
+			local battery_cap=$(adb shell 'cat /sys/class/power_supply/battery/capacity 2>/dev/null' | tr -d ' \r\n')
+			verbose "battery_cap: $battery_cap"
+			if [[ -n $battery_cap ]]; then
+				(( $battery_cap > 15 )) || {
+					error "low battery, use -f to bypass battery check"
+					return 1
+				}
+			else
+				warn "can not access file: /sys/class/power_supply/battery/capacity"
+			fi
+		fi
+
+		partition_tbl=($(adb shell 'ls /dev/block/platform/*/by-name/ 2>/dev/null' | tr -d '\r'))
+		verbose "partition_tbl: ${partition_tbl[@]}"
+		(( ${#partition_tbl[@]} )) || warn "can not access directory: /dev/block/platform/*/by-name/"
+
+		adb reboot bootloader
+	fi
+
+	local op=()
+	local mp=(sbl1 modem dbi tz rpm splash)
+	local ap=(aboot boot cache userdata recovery system persist)
+	local all=("${mp[@]}" "${ap[@]}")
+
+	while (( $# ))
+	do
+		case "$1" in
+			"mp" | "ap" | "all")
+				eval op+=(\${$1[@]})
+			;;
+			*)
+				op+=("$1")
+			;;
+		esac
+		shift
+	done
+
+	date
+	echo "${op[@]}"
+	set "${op[@]}"
+	while (( $# ))
+	do
+		verbose "$1";
+
+		if [[ ${#partition_tbl[@]} > 0 ]]; then
+			if ! _array_contain partition_tbl "$1"; then
+				warn "unknown partition: $1"
+				shift
+				continue
+			fi
+		fi
+
+		if [ -f "$2" ]; then
+			fastboot flash $1 $2;
+			shift;
+		else
+			local DefautFile=`_genDefFileName $1`;
+			verbose "DefautFile=$DefautFile";
+			if [ -n "$DefautFile" ]; then
+				if [[ -f "$DefautFile" ]]; then
+					fastboot flash $1 $DefautFile;
+				else
+					warn "file not found: $DefautFile"
+				fi
+			else
+				error "unknown partition name ($1)";
+				return 1;
+			fi;
+		fi;
+		shift;
+	done;
+	fastboot reboot;
+}
+complete -W "all mp ap splash boot cache userdata recovery system persist sbl1 modem dbi tz rpm aboot" myflash
