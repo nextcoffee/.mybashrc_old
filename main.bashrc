@@ -47,18 +47,20 @@ _mycd(){
 
 	local key
 	local i
+	local cnt
 	for key in ${key_lst[@]}
 	do
 		verbose
 		verbose "key..$key"
-		for (( i=0; i<${#dir_lst[@]}; i++ ))
+		cnt=${#dir_lst[@]}
+		for (( i=0; i<$cnt; i++ ))
 		do
 			verbose "dir_lst[$i]..${dir_lst[i]}"
 			[[ "${dir_lst[i]}" =~ "$key" ]] || unset dir_lst[$i]
 		done
 
 		# clear up empty elements
-		# dir_lst=(${dir_lst[@]})
+		# dir_lst=("${dir_lst[@]}")
 		verbose
 	done
 
