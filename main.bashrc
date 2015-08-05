@@ -45,6 +45,8 @@ _mycd(){
 	COMPREPLY=($dir_lst[@])
 	[[ ${#key_lst[@]} = 0 ]] && return 0
 
+	local key
+	local i
 	for key in ${key_lst[@]}
 	do
 		verbose
@@ -52,11 +54,11 @@ _mycd(){
 		for (( i=0; i<${#dir_lst[@]}; i++ ))
 		do
 			verbose "dir_lst[$i]..${dir_lst[i]}"
-			[[ "${dir_lst[i]}" =~ "$key" ]] || dir_lst[i]=''
+			[[ "${dir_lst[i]}" =~ "$key" ]] || unset dir_lst[$i]
 		done
 
-		#clear up empty elements
-		dir_lst=(${dir_lst[@]})
+		# clear up empty elements
+		# dir_lst=(${dir_lst[@]})
 		verbose
 	done
 
@@ -84,7 +86,12 @@ function _adbsh(){
 
 	#local cur="${COMP_WORDS[COMP_CWORD]}"
 	_get_comp_words_by_ref -n : cur
-	[[ ${cur::1} = '/' ]] || cur="/$cur"
+	#[[ ${cur::1} = '/' ]] || cur="/$cur"
+	[[ ${cur::1} = '/' ]] || {
+		file_list=($(adb shell 'ls $(echo ${PATH//:/ }) 2>/dev/null' | tr -s '\r\n' ' '))
+		COMPREPLY=($(compgen -W '${file_list[@]}' -- "$cur"))
+		return 0
+	}
 
 	local dir="${cur%/*}/"
 	local obj="${cur##*/}"
