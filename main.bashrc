@@ -88,7 +88,7 @@ function _adbsh(){
 	_get_comp_words_by_ref -n : cur
 	#[[ ${cur::1} = '/' ]] || cur="/$cur"
 	[[ ${cur::1} = '/' ]] || {
-		file_list=($(adb shell 'ls $(echo ${PATH//:/ }) 2>/dev/null' | tr -s '\r\n' ' '))
+		file_list=($(adb shell 'ls -F $(echo ${PATH//:/ }) 2>/dev/null | while read line; do [[ ${line::1} = '-' ]] || [[ ${line::2} = 'l-' ]] && echo ${line#*- }; done' | tr -s '\r\n' ' '))
 		COMPREPLY=($(compgen -W '${file_list[@]}' -- "$cur"))
 		return 0
 	}
