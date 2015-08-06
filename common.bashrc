@@ -29,12 +29,12 @@ logcon ()
 	case "$1" in
 		level)
 			shift
-			if [[ -n $1 ]]; then
-				if [[ 'sewdv' =~ $1 ]]; then
+			if [[ "$1" ]]; then
+				if [[ ${#1} = 1 ]] && [[ 'sewdv' =~ "$1" ]]; then
 					log_level=$1
 					return 0
 				else
-					err "wrong args"
+					error "wrong args"
 				fi
 			else
 				echo $log_level
@@ -47,7 +47,7 @@ logcon ()
 }
 
 # set default level and mode
-log_level=w
+[[ $log_level ]] || log_level=w
 
 ##
 # ## logput
@@ -66,8 +66,8 @@ logput ()
 {
 	(( $# )) || (_usage && return 0)
 	
-	local style=''
-	local lvl=$1
+	local style
+	local lvl="$1"
 	case "$lvl" in
 		e)
 			style="31"
@@ -87,10 +87,10 @@ logput ()
 		;;
 	esac	
 	
-	[[ ! "ewdv" =~ $log_level.*$lvl ]] || return 0
+	[[ ! "sewdv" =~ "$log_level".*"$lvl" ]] || return 0
 	
 	shift
-	if [[ -n $@ ]]; then
+	if [[ "$@" ]]; then
 		echo -e "\e[${style}m$@\e[0m"
 	else
 		echo -e "\r\n"
@@ -117,8 +117,8 @@ alias verbose='logput v'
 #   generate markdown docs from source file
 gen_doc ()
 {
-	[[ -f $1 ]] || return
-	sed -n -e '/^##/,/^[^#]/{/^##/n; /^[^#]/{g;p;b}; s/#\s\?//p}' $1
+	[[ -f "$1" ]] || return
+	sed -n -e '/^##/,/^[^#]/{/^##/n; /^[^#]/{g;p;b}; s/#\s\?//p}' "$1"
 }
 
 ##
@@ -132,8 +132,8 @@ gen_doc ()
 alias _usage='_usage_inner $BASH_SOURCE $FUNCNAME'
 _usage_inner()
 {
-	[[ -n $2 ]] || return
-	sed -n -e '/^# ## '$2'$/,/^[^#]/{/^# ## '$2'$/n; /^[^#]/{g;p;b}; s/#\s\?//p}' "$1"
+	[[ "$2" ]] || return
+	sed -n -e '/^# ## '"$2"'$/,/^[^#]/{/^# ## '"$2"'$/n; /^[^#]/{g;p;b}; s/#\s\?//p}' "$1"
 	
 	return 0
 }
