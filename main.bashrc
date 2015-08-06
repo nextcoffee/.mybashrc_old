@@ -1,3 +1,21 @@
+# Skip this config if we aren't in bash
+[[ -n "${BASH_VERSION}" ]] || return
+
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
+
+# append to the history file, don't overwrite it
+shopt -s histappend
+
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=3000
+HISTFILESIZE=3000
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
 source $(dirname $BASH_SOURCE)/common.bashrc
 
 # the \[ \] escapes around colors make them not count as character positions and the cursor position is not wrong.
@@ -85,7 +103,7 @@ function _adbsh(){
 	_get_comp_words_by_ref -n : cur
 	#[[ ${cur::1} = '/' ]] || cur="/$cur"
 	[[ ${cur::1} = '/' ]] || {
-		file_list=($(adb shell 'ls -F $(echo ${PATH//:/ }) 2>/dev/null | while read line; do [[ ${line::1} = '-' ]] || [[ ${line::2} = 'l-' ]] && echo ${line#*- }; done' | tr -s '\r\n' ' '))
+		local file_list=($(adb shell 'ls -F $(echo ${PATH//:/ }) 2>/dev/null | while read line; do [[ ${line::1} = '-' ]] || [[ ${line::2} = 'l-' ]] && echo ${line#*- }; done' | tr -s '\r\n' ' '))
 		COMPREPLY=($(compgen -W '${file_list[@]}' -- "$cur"))
 		return 0
 	}
