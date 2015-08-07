@@ -40,12 +40,10 @@ alias klog='adb wait-for-device root; adb wait-for-device shell cat /proc/kmsg'
 alias lbgrep='grep --line-buffered'
 
 _mycd(){
-	local old_ifs=$IFS
-	IFS=$'\n'
+	local IFS=$'\n'
 	local cur="${COMP_WORDS[COMP_CWORD]}"
 	local dir_lst=($(unset HISTTIMEFORMAT; history | awk '{$1="";print $0}' | sed -n 's/^ *\(my\)\?cd *\([^;]*\).*/\2/p' | sort -u))
 	local key_lst=($(echo $cur | tr '+' '\n'))
-	IFS=$old_ifs
 
 	verbose
 	verbose "-----------INFO{----------"
