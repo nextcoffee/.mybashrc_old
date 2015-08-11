@@ -298,3 +298,18 @@ myflash ()
 	fastboot reboot;
 }
 complete -W "all mp ap splash boot cache userdata recovery system persist sbl1 modem dbi tz rpm aboot" myflash
+
+_comp_test ()
+{
+	echo
+	echo -------------------
+	set | grep ^COMP_
+	echo -------------------
+	echo
+}
+
+comp_test ()
+{
+	return 0
+}
+complete -F _comp_test comp_test
