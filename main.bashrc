@@ -238,3 +238,13 @@ comp_test ()
 	return 0
 }
 complete -F _comp_test comp_test
+
+myrebootftm(){
+	adb root
+	adb wait-for-device
+
+	local MMC_NM=`adb shell ls /dev/block/platform | tr -d '\r\n'`
+	#adb shell 'cat /dev/block/platform/'$MMC_NM'/by-name/misc'
+	adb shell 'echo ffbm-1 > /dev/block/platform/'$MMC_NM'/by-name/misc'
+	adb reboot
+}
