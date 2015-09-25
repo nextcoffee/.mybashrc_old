@@ -248,3 +248,69 @@ myrebootftm(){
 	adb shell 'echo ffbm-1 > /dev/block/platform/'$MMC_NM'/by-name/misc'
 	adb reboot
 }
+
+##
+# ## mygdbsvr
+#
+# #### SYNOPSIS
+#   `mygdbsvr [options] [exe]`
+#
+# #### DESCRIPTION
+#   setup gdbserver
+#
+# #### OPERATIONS
+# - `-a`
+#
+#     attach mode
+#
+# - `-p port`
+#
+#     user specified port number
+mygdbsvr ()
+{
+    local _PORT=5039
+    local _ATTACH=false
+    local _EXE
+    local _PID
+    while (( $# )); do
+        verbose "$1"
+        case "$1" in
+            "-a")
+                _ATTACH=true
+            ;;
+            "-p")
+                shift
+                if [[ ! "$1" =~ ^[0-9]+$ ]]; then
+                    error "invalid PID number: ($1)"
+                    return 1
+                fi
+                _PORT=$1
+            ;;
+            "-h" | "--help")
+                _usage
+                return 0
+            ;;
+            *)
+                _EXE=$1
+                break
+            ;;
+        esac
+        shift
+    done
+    if $_ATTACH; then
+        _PID=`adb shell ps | \grep "$_EXE$" | \grep -v ":" | awk '{print $2}'`
+        if [[ ! "$_PID" =~ ^[0-9]+$ ]]; then
+            error "Couldn't resolve '$_EXE' to single PID"
+            return 1
+        fi
+    fi
+    adb wait-for-device root
+    adb kill-server
+    adb -a nodaemon server &
+    adb forward "tcp:$_PORT" "tcp:$_PORT"
+    if $_ATTACH; then
+        adb shell gdbserver :$_PORT --attach $_PID
+    else
+        adb shell gdbserver :$_PORT $_EXE
+    fi
+}
