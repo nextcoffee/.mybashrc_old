@@ -39,6 +39,32 @@ alias klog='adb wait-for-device root; adb wait-for-device shell cat /proc/kmsg'
 # Use line buffering on output.  This can cause a performance penalty.
 alias lbgrep='grep --line-buffered'
 
+alias adb='_adb'
+
+_adb(){
+	# ANDROID_SERIAL
+	# adb devices | awk '{if(NR!=1) print $1}'
+	local adb_devs=(`\adb devices | sed 1d | awk '{print $1}'`)
+	local adb_serial
+
+	if [[ ${#adb_devs[@]} = 0 ]]; then
+		error "insert device please!"
+		return -1
+	fi
+
+	if [[ ${#adb_devs[@]} = 1 ]]; then
+		adb_serial=$adb_devs
+	else
+		select var in ${adb_devs[@]}; do
+			echo "choosing $var"
+			adb_serial=$var
+			break
+		done
+	fi
+
+	\adb -s $adb_serial $@
+}
+
 _mycd(){
 	local IFS=$'\n'
 	local cur="${COMP_WORDS[COMP_CWORD]}"
