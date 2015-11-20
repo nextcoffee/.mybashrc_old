@@ -39,31 +39,31 @@ alias klog='adb wait-for-device root; adb wait-for-device shell cat /proc/kmsg'
 # Use line buffering on output.  This can cause a performance penalty.
 alias lbgrep='grep --line-buffered'
 
-alias adb='_adb'
+# alias adb='_adb'
 
-_adb(){
-	# ANDROID_SERIAL
-	# adb devices | awk '{if(NR!=1) print $1}'
-	local adb_devs=(`\adb devices | sed 1d | awk '{print $1}'`)
-	local adb_serial
+# _adb(){
+	# # ANDROID_SERIAL
+	# # adb devices | awk '{if(NR!=1) print $1}'
+	# local adb_devs=(`\adb devices | sed 1d | awk '{print $1}'`)
+	# local adb_serial
 
-	if [[ ${#adb_devs[@]} = 0 ]]; then
-		error "insert device please!"
-		return -1
-	fi
+	# if [[ ${#adb_devs[@]} = 0 ]]; then
+		# error "insert device please!"
+		# return -1
+	# fi
 
-	if [[ ${#adb_devs[@]} = 1 ]]; then
-		adb_serial=$adb_devs
-	else
-		select var in ${adb_devs[@]}; do
-			echo "choosing $var"
-			adb_serial=$var
-			break
-		done
-	fi
+	# if [[ ${#adb_devs[@]} = 1 ]]; then
+		# adb_serial=$adb_devs
+	# else
+		# select var in ${adb_devs[@]}; do
+			# echo "choosing $var"
+			# adb_serial=$var
+			# break
+		# done
+	# fi
 
-	\adb -s $adb_serial $@
-}
+	# \adb -s $adb_serial $@
+# }
 
 _mycd(){
 	local IFS=$'\n'
@@ -269,10 +269,21 @@ myrebootftm(){
 	adb root
 	adb wait-for-device
 
-	local MMC_NM=`adb shell ls /dev/block/platform | tr -d '\r\n'`
-	#adb shell 'cat /dev/block/platform/'$MMC_NM'/by-name/misc'
-	adb shell 'echo ffbm-1 > /dev/block/platform/'$MMC_NM'/by-name/misc'
-	adb reboot
+	local IFS=$' \r\n'
+	local MMC_NM=($(adb shell ls /dev/block/platform))
+
+	for var in ${MMC_NM[@]}; do
+		verbose $var
+
+		if [[ $(adb shell "[[ -w /dev/block/platform/$var/by-name/misc ]] && echo true || echo false") =~ "true" ]]; then
+			adb shell 'echo ffbm-1 > /dev/block/platform/'$var'/by-name/misc'
+			adb reboot
+			return 0
+		fi
+	done
+
+	error "no valid misc partition"
+	return 1
 }
 
 ##
