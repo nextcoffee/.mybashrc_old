@@ -19,7 +19,7 @@ shopt -s checkwinsize
 source $(dirname $BASH_SOURCE)/common.bashrc
 
 # the \[ \] escapes around colors make them not count as character positions and the cursor position is not wrong.
-export PS1='\n`[[ $? = 0 ]] && echo \[\033[32m\] || echo \[\033[31m\]`[`date +%T`][\w]\n\$ \[\033[0m\]'; echo -ne "\033]0;`hostname -s`:`pwd`\007"
+export PS1='\n`[[ $? = 0 ]] && echo \[\033[32m\] || echo \[\033[31m\]`[`date +%T`][\w]\n\$ \[\033[0m\]'
 
 # Add context menu on dirctory for cygwin under windows environment
 # "C:\cygwin64\bin\mintty.exe" -i /Cygwin-Terminal.ico -w max /bin/env _T="%V" /bin/bash -l
@@ -38,6 +38,10 @@ alias klog='adb wait-for-device root; adb wait-for-device shell cat /proc/kmsg'
 
 # Use line buffering on output.  This can cause a performance penalty.
 alias lbgrep='grep --line-buffered'
+
+function title() {
+    echo -ne "\e]2;"$1"\a"
+}
 
 # alias adb='_adb'
 
