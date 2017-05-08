@@ -39,6 +39,11 @@ alias klog='adb wait-for-device root; adb wait-for-device shell cat /proc/kmsg'
 # Use line buffering on output.  This can cause a performance penalty.
 alias lbgrep='grep --line-buffered'
 
+if command -v thefuck > /dev/null; then
+    eval $(thefuck --alias)
+    alias kao='fuck'
+fi
+
 function title() {
     echo -ne "\e]2;"$1"\a"
 }
