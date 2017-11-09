@@ -1,3 +1,22 @@
+# DOC&HELP
+---------
+
+## _usage
+
+#### SYNOPSIS
+  `_usage`
+
+#### DESCRIPTION
+  generate help informaton for function
+
+## gen_doc
+
+#### SYNOPSIS
+  `gen_doc [file]`
+
+#### DESCRIPTION
+  generate markdown docs from source file
+
 # LOG
 ---------
 
@@ -34,23 +53,4 @@
 - `level`
 
     refer to `logcon`
-
-# DOC&HELP
----------
-
-## gen_doc
-
-#### SYNOPSIS
-  `gen_doc [file]`
-
-#### DESCRIPTION
-  generate markdown docs from source file
-
-## _usage
-
-#### SYNOPSIS
-  `_usage`
-
-#### DESCRIPTION
-  generate help informaton for function
 

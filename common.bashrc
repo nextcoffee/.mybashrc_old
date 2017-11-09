@@ -1,4 +1,40 @@
 ##
+# # DOC&HELP
+# ---------
+#
+
+##
+# ## _usage
+#
+# #### SYNOPSIS
+#   `_usage`
+#
+# #### DESCRIPTION
+#   generate help informaton for function
+_usage_inner ()
+{
+	echo "USAGE:"
+	sed -n -e '/^# ## '"$2"'$/,/^[^#]/{/^# ## '"$2"'$/n; /^[^#]/{g;p;b}; s/#\s\?//p}' "$1"
+}
+alias _usage='_usage_inner $BASH_SOURCE $FUNCNAME'
+
+##
+# ## gen_doc
+#
+# #### SYNOPSIS
+#   `gen_doc [file]`
+#
+# #### DESCRIPTION
+#   generate markdown docs from source file
+gen_doc ()
+{
+	[[ -f "$1" ]] || { _usage; return 1; }
+
+	sed -n -e '/^##/,/^[^#]/{/^##/n; /^[^#]/{g;p;b}; s/#\s\?//p}' "$1"
+	return 0
+}
+
+##
 # # LOG
 # ---------
 #
@@ -34,7 +70,7 @@ logcon ()
 					log_level=$1
 					return 0
 				else
-					error "wrong args"
+					error "invalid argument: expected [sewdv], arg ($1)"
 				fi
 			else
 				echo $log_level
@@ -44,6 +80,7 @@ logcon ()
 	esac
 	
 	_usage
+	return 1
 }
 
 # set default level and mode
@@ -64,7 +101,7 @@ logcon ()
 #     refer to `logcon`
 logput ()
 {
-	(( $# )) || (_usage && return 0)
+	(( $# )) || { _usage; return 0; }
 	
 	local style
 	local lvl="$1"
@@ -95,45 +132,11 @@ logput ()
 	else
 		echo -e "\r\n"
 	fi
+	
+	return 0
 }
 
 alias error='logput e >&2'
 alias warn='logput w >&2'
 alias debug='logput d'
 alias verbose='logput v'
-
-##
-# # DOC&HELP
-# ---------
-#
-
-##
-# ## gen_doc
-#
-# #### SYNOPSIS
-#   `gen_doc [file]`
-#
-# #### DESCRIPTION
-#   generate markdown docs from source file
-gen_doc ()
-{
-	[[ -f "$1" ]] || return
-	sed -n -e '/^##/,/^[^#]/{/^##/n; /^[^#]/{g;p;b}; s/#\s\?//p}' "$1"
-}
-
-##
-# ## _usage
-#
-# #### SYNOPSIS
-#   `_usage`
-#
-# #### DESCRIPTION
-#   generate help informaton for function
-alias _usage='_usage_inner $BASH_SOURCE $FUNCNAME'
-_usage_inner()
-{
-	[[ "$2" ]] || return
-	sed -n -e '/^# ## '"$2"'$/,/^[^#]/{/^# ## '"$2"'$/n; /^[^#]/{g;p;b}; s/#\s\?//p}' "$1"
-	
-	return 0
-}

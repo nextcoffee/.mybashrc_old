@@ -44,8 +44,12 @@ if command -v thefuck > /dev/null; then
     alias kao='fuck'
 fi
 
-function title() {
+title() {
     echo -ne "\e]2;"$1"\a"
+}
+
+reload() {
+	source $BASH_SOURCE
 }
 
 # alias adb='_adb'
