@@ -95,7 +95,7 @@ _mycd(){
 	COMPREPLY=()
 	[[ ${#dir_lst[@]} = 0 ]] && return 0
 
-	COMPREPLY=($dir_lst[@])
+	COMPREPLY=(${dir_lst[@]})
 	[[ ${#key_lst[@]} = 0 ]] && return 0
 
 	local key
